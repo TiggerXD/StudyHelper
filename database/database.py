@@ -41,3 +41,21 @@ def login(student_id):
     conn.close()
 
     return user
+
+def add_user(student_id, name, role="student"):
+    conn = connect()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "INSERT INTO users VALUES (?, ?, ?)",
+            (student_id, name, role)
+        )
+        conn.commit()
+        return True
+
+    except sqlite3.IntegrityError:
+        return False
+
+    finally:
+        conn.close()
