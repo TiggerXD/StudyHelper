@@ -1,6 +1,10 @@
 import streamlit as st
+import database.database as db
 
-from database.database import login
+st.write("Database file:", db.__file__)
+st.write("Functions:", dir(db))
+
+st.stop()
 
 st.set_page_config(
     page_title="Study Helper",
