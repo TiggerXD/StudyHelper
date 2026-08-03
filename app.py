@@ -1,10 +1,6 @@
 import streamlit as st
+
 import database.database as db
-
-st.write("Database file:", db.__file__)
-st.write("Functions:", dir(db))
-
-st.stop()
 
 st.set_page_config(
     page_title="Study Helper",
@@ -26,7 +22,7 @@ if not st.session_state.logged_in:
 
     if st.button("Login"):
 
-        user = login(student_id)
+        user = db.login(student_id)
 
         if user:
 
