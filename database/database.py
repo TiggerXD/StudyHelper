@@ -25,3 +25,19 @@ def add_user(student_id, name, role="student"):
 
     conn.commit()
     conn.close()
+
+def login(student_id):
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM users WHERE student_id=?",
+        (student_id,)
+    )
+
+    user = cursor.fetchone()
+
+    conn.close()
+
+    return user
