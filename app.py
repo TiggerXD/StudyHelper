@@ -4,7 +4,6 @@ import database.database as db
 # Page configuration
 st.set_page_config(
     page_title="Study Helper",
-    page_icon="📚",
     layout="wide"
 )
 
@@ -24,7 +23,7 @@ if "selected_assignment" not in st.session_state:
 # Login page
 if not st.session_state.logged_in:
 
-    st.title("📚 Study Helper")
+    st.title("Study Helper")
 
     st.markdown("### Login")
 
@@ -112,7 +111,7 @@ else:
     # Sidebar
     with st.sidebar:
 
-        st.title("📚 Study Helper")
+        st.title("Study Helper")
 
         st.divider()
 
@@ -127,7 +126,7 @@ else:
         st.divider()
 
         if st.button(
-            "🏠 Dashboard",
+            "Dashboard",
             use_container_width=True
         ):
 
@@ -156,7 +155,7 @@ else:
     if st.session_state.page == "dashboard":
 
         st.title(
-            f"Good to see you, {st.session_state.name}! 👋"
+            f"Good to see you, {st.session_state.name}!"
         )
 
         # Check user permissions
@@ -169,7 +168,7 @@ else:
         if can_manage_assignments:
 
             if st.button(
-                "➕ Add Assignment",
+                "Add Assignment",
                 use_container_width=True
             ):
 
@@ -205,11 +204,11 @@ else:
                     st.subheader(title)
 
                     st.write(
-                        f"📘 **Subject:** {subject}"
+                        f"**Subject:** {subject}"
                     )
 
                     st.write(
-                        f"📅 **Due:** {due_date}"
+                        f"**Due:** {due_date}"
                     )
 
                     if description:
@@ -240,14 +239,13 @@ else:
                         if can_manage_assignments:
 
                             if st.button(
-                                "🗑️ Delete",
+                                "Delete",
                                 key=f"delete_{assignment_id}",
                                 use_container_width=True
                             ):
 
                                 st.session_state.delete_assignment = assignment_id
                                 st.rerun()
-
 
         # Delete confirmation
         if "delete_assignment" in st.session_state:
@@ -307,14 +305,14 @@ else:
                 "You don't have permission to create assignments."
             )
 
-            if st.button("← Back to Dashboard"):
+            if st.button("Back to Dashboard"):
 
                 st.session_state.page = "dashboard"
                 st.rerun()
 
         else:
 
-            st.title("➕ Create Assignment")
+            st.title("Create Assignment")
 
             title = st.text_input(
                 "Assignment Name"
@@ -407,7 +405,7 @@ else:
             st.title(title)
 
             st.write(
-                f"### 📘 {subject}"
+                f"### {subject}"
             )
 
             st.write(
@@ -441,7 +439,7 @@ else:
             ]:
 
                 if st.button(
-                    "🗑️ Delete Assignment"
+                    "Delete Assignment"
                 ):
 
                     st.session_state.delete_from_details = assignment_id
@@ -485,7 +483,7 @@ else:
                         st.rerun()
 
             if st.button(
-                "← Back to Dashboard"
+                "Back to Dashboard"
             ):
 
                 st.session_state.page = "dashboard"
@@ -498,7 +496,7 @@ else:
             )
 
             if st.button(
-                "← Back to Dashboard"
+                "Back to Dashboard"
             ):
 
                 st.session_state.page = "dashboard"
@@ -511,5 +509,5 @@ else:
         st.title("AI Assistant")
 
         st.info(
-            "The AI Assistant will be added here later."
+            "GO BACK TO HOMEPAGE NOW NOT DONE BRO"
         )
