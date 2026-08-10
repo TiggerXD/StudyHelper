@@ -214,7 +214,7 @@ else:
         st.title("AI Assistant")
 
         st.info(
-            "The AI Assistant will be added here later."
+            "GO BACK TO HOMEPAGE ITS NOT DONE BROOOOOOOOOOO"
         )
 
     # Assignment details page
