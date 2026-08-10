@@ -148,3 +148,25 @@ def get_assignment(assignment_id):
     conn.close()
 
     return assignment
+
+
+# Delete an assignment
+def delete_assignment(assignment_id):
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM assignments
+        WHERE id = ?
+        """,
+        (assignment_id,)
+    )
+
+    conn.commit()
+
+    deleted = cursor.rowcount > 0
+
+    conn.close()
+
+    return deleted
