@@ -1,7 +1,6 @@
 import html
 import streamlit as st
 import database.database as db
-from ai.model import generate_response
 
 # Page configuration
 st.set_page_config(
@@ -12,7 +11,7 @@ st.set_page_config(
 
 # AI page
 def ai_page():
-
+    from ai.model import generate_response
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = [
