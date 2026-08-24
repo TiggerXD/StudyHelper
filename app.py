@@ -1,5 +1,7 @@
+import html
 import streamlit as st
 import database.database as db
+from ai.model import generate_response
 
 # Page configuration
 st.set_page_config(
@@ -7,8 +9,278 @@ st.set_page_config(
     layout="wide"
 )
 
+
+# AI page
+def ai_page():
+
+    # Initialize chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": "Hello! I'm your Study Helper. What subject or topic are we working on today?"
+            }
+        ]
+
+    # AI page styling
+    st.markdown(
+        """
+        <style>
+
+        /* Main background */
+        .stApp {
+            background-color: #343541;
+            color: #ececf1;
+        }
+
+        /* Hide Streamlit default UI */
+        #MainMenu {
+            visibility: hidden;
+        }
+
+        footer {
+            visibility: hidden;
+        }
+
+        header {
+            visibility: hidden;
+        }
+
+        /* Sidebar */
+        section[data-testid="stSidebar"] {
+            background-color: #202123;
+        }
+
+        /* Header */
+        .study-header {
+            text-align: center;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #d1d5db;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Chat message */
+        .message {
+            display: flex;
+            justify-content: center;
+            padding: 24px 20px;
+        }
+
+        .message-ai {
+            background-color: #444654;
+        }
+
+        .message-inner {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Avatar */
+        .avatar {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            border-radius: 4px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-weight: bold;
+            font-size: 14px;
+
+            color: white;
+        }
+
+        .avatar-ai {
+            background-color: #5436DA;
+        }
+
+        .avatar-user {
+            background-color: #10a37f;
+        }
+
+        /* Message text */
+        .message-content {
+            flex: 1;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #ececf1;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        /* Chat input */
+        div[data-testid="stChatInput"] {
+            background-color: #40414F;
+            border-radius: 12px;
+            border: 1px solid rgba(32,33,35,0.5);
+        }
+
+        div[data-testid="stChatInput"] textarea {
+            color: white;
+        }
+
+        /* Spinner */
+        div[data-testid="stSpinner"] {
+            color: #ececf1;
+        }
+
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Header
+    st.markdown(
+        '<div class="study-header">Study Helper</div>',
+        unsafe_allow_html=True
+    )
+
+    # Display chat messages
+    for message in st.session_state.messages:
+
+        safe_content = html.escape(message["content"])
+
+        if message["role"] == "assistant":
+
+            st.markdown(
+                f"""
+                <div class="message message-ai">
+                    <div class="message-inner">
+
+                        <div class="avatar avatar-ai">
+                            SH
+                        </div>
+
+                        <div class="message-content">
+                            {safe_content}
+                        </div>
+
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        else:
+
+            st.markdown(
+                f"""
+                <div class="message">
+                    <div class="message-inner">
+
+                        <div class="avatar avatar-user">
+                            U
+                        </div>
+
+                        <div class="message-content">
+                            {safe_content}
+                        </div>
+
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    # Chat input
+    prompt = st.chat_input(
+        "Message Study Helper..."
+    )
+
+    if prompt:
+
+        # Add user message
+        st.session_state.messages.append(
+            {
+                "role": "user",
+                "content": prompt
+            }
+        )
+
+        # Build system prompt
+        gemma_messages = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """
+You are Study Helper, an AI study assistant.
+
+Your job is to help students understand their school subjects.
+
+Explain concepts clearly and step-by-step.
+
+When a student is struggling, break the problem into smaller parts.
+
+Use examples when they are useful.
+
+Do not unnecessarily give the answer to a homework question without explaining how to solve it.
+
+Adapt your explanation to the student's level.
+
+Be friendly, helpful, and concise.
+
+If the student asks a simple question, give a simple answer.
+
+If the student asks for a detailed explanation, provide a detailed explanation.
+"""
+                    }
+                ]
+            }
+        ]
+
+        # Add conversation history
+        for message in st.session_state.messages:
+
+            gemma_messages.append(
+                {
+                    "role": message["role"],
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": message["content"]
+                        }
+                    ]
+                }
+            )
+
+        # Generate response
+        with st.spinner("Study Helper is thinking..."):
+
+            try:
+
+                response = generate_response(
+                    gemma_messages
+                )
+
+            except Exception as e:
+
+                response = (
+                    "Sorry, I couldn't generate a response right now.\n\n"
+                    f"Error: {e}"
+                )
+
+        # Save AI response
+        st.session_state.messages.append(
+            {
+                "role": "assistant",
+                "content": response
+            }
+        )
+
+        st.rerun()
+
+
 # Initialize database
 db.initialize_database()
+
 
 # Session state
 if "logged_in" not in st.session_state:
@@ -19,6 +291,7 @@ if "page" not in st.session_state:
 
 if "selected_assignment" not in st.session_state:
     st.session_state.selected_assignment = None
+
 
 # Login page
 if not st.session_state.logged_in:
@@ -49,7 +322,9 @@ if not st.session_state.logged_in:
 
         else:
 
-            st.error("Student ID not found.")
+            st.error(
+                "Student ID not found."
+            )
 
     # Sign up
     with st.expander("Don't have an account? Sign Up"):
@@ -108,7 +383,7 @@ if not st.session_state.logged_in:
 # Main application
 else:
 
-    # Sidebar
+    # Main sidebar
     with st.sidebar:
 
         st.title("Study Helper")
@@ -125,6 +400,7 @@ else:
 
         st.divider()
 
+        # Dashboard button
         if st.button(
             "Dashboard",
             use_container_width=True
@@ -133,6 +409,7 @@ else:
             st.session_state.page = "dashboard"
             st.rerun()
 
+        # AI button
         if st.button(
             "AI Assistant",
             use_container_width=True
@@ -141,8 +418,28 @@ else:
             st.session_state.page = "ai"
             st.rerun()
 
+        # New study session
+        if st.session_state.page == "ai":
+
+            st.divider()
+
+            if st.button(
+                "＋  New study session",
+                use_container_width=True
+            ):
+
+                st.session_state.messages = [
+                    {
+                        "role": "assistant",
+                        "content": "Hello! I'm your Study Helper. What subject or topic are we working on today?"
+                    }
+                ]
+
+                st.rerun()
+
         st.divider()
 
+        # Logout
         if st.button(
             "Logout",
             use_container_width=True
@@ -151,20 +448,27 @@ else:
             st.session_state.clear()
             st.rerun()
 
+
+    # AI page
+    if st.session_state.page == "ai":
+
+        ai_page()
+
+
     # Dashboard
-    if st.session_state.page == "dashboard":
+    elif st.session_state.page == "dashboard":
 
         st.title(
             f"Good to see you, {st.session_state.name}!"
         )
 
-        # Check user permissions
+        # Check permissions
         can_manage_assignments = (
             st.session_state.role
             in ["helper", "leader", "teacher"]
         )
 
-        # Add assignment button
+        # Add assignment
         if can_manage_assignments:
 
             if st.button(
@@ -247,6 +551,7 @@ else:
                                 st.session_state.delete_assignment = assignment_id
                                 st.rerun()
 
+
         # Delete confirmation
         if "delete_assignment" in st.session_state:
 
@@ -305,7 +610,9 @@ else:
                 "You don't have permission to create assignments."
             )
 
-            if st.button("Back to Dashboard"):
+            if st.button(
+                "Back to Dashboard"
+            ):
 
                 st.session_state.page = "dashboard"
                 st.rerun()
@@ -432,6 +739,7 @@ else:
 
             st.divider()
 
+            # Delete assignment
             if st.session_state.role in [
                 "helper",
                 "leader",
@@ -445,6 +753,7 @@ else:
                     st.session_state.delete_from_details = assignment_id
                     st.rerun()
 
+            # Delete confirmation
             if "delete_from_details" in st.session_state:
 
                 st.warning(
@@ -501,13 +810,3 @@ else:
 
                 st.session_state.page = "dashboard"
                 st.rerun()
-
-
-    # AI page
-    elif st.session_state.page == "ai":
-
-        st.title("AI Assistant")
-
-        st.info(
-            "GO BACK TO HOMEPAGE NOW NOT DONE BRO"
-        )
