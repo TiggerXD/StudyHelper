@@ -11,9 +11,13 @@ st.set_page_config(
 
 # AI page
 def ai_page():
+
+    # Load AI model only when AI page is opened
     from ai.model import generate_response
+
     # Initialize chat history
     if "messages" not in st.session_state:
+
         st.session_state.messages = [
             {
                 "role": "assistant",
@@ -60,7 +64,7 @@ def ai_page():
             border-bottom: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* Chat message */
+        /* Message */
         .message {
             display: flex;
             justify-content: center;
@@ -113,7 +117,7 @@ def ai_page():
             overflow-wrap: anywhere;
         }
 
-        /* Chat input */
+        /* Input */
         div[data-testid="stChatInput"] {
             background-color: #40414F;
             border-radius: 12px;
@@ -143,7 +147,9 @@ def ai_page():
     # Display chat messages
     for message in st.session_state.messages:
 
-        safe_content = html.escape(message["content"])
+        safe_content = html.escape(
+            message["content"]
+        )
 
         if message["role"] == "assistant":
 
@@ -202,14 +208,8 @@ def ai_page():
             }
         )
 
-        # Build system prompt
-        gemma_messages = [
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": """
+        # System prompt
+        system_prompt = """
 You are Study Helper, an AI study assistant.
 
 Your job is to help students understand their school subjects.
@@ -230,6 +230,15 @@ If the student asks a simple question, give a simple answer.
 
 If the student asks for a detailed explanation, provide a detailed explanation.
 """
+
+        # Build Gemma conversation
+        gemma_messages = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": system_prompt
                     }
                 ]
             }
@@ -250,8 +259,10 @@ If the student asks for a detailed explanation, provide a detailed explanation.
                 }
             )
 
-        # Generate response
-        with st.spinner("Study Helper is thinking..."):
+        # Generate AI response
+        with st.spinner(
+            "Study Helper is thinking..."
+        ):
 
             try:
 
@@ -261,10 +272,11 @@ If the student asks for a detailed explanation, provide a detailed explanation.
 
             except Exception as e:
 
-                response = (
-                    "Sorry, I couldn't generate a response right now.\n\n"
-                    f"Error: {e}"
+                st.error(
+                    f"AI error: {e}"
                 )
+
+                return
 
         # Save AI response
         st.session_state.messages.append(
@@ -283,12 +295,17 @@ db.initialize_database()
 
 # Session state
 if "logged_in" not in st.session_state:
+
     st.session_state.logged_in = False
 
+
 if "page" not in st.session_state:
+
     st.session_state.page = "dashboard"
 
+
 if "selected_assignment" not in st.session_state:
+
     st.session_state.selected_assignment = None
 
 
@@ -308,7 +325,9 @@ if not st.session_state.logged_in:
         use_container_width=True
     ):
 
-        user = db.login(student_id)
+        user = db.login(
+            student_id
+        )
 
         if user:
 
@@ -325,8 +344,11 @@ if not st.session_state.logged_in:
                 "Student ID not found."
             )
 
+
     # Sign up
-    with st.expander("Don't have an account? Sign Up"):
+    with st.expander(
+        "Don't have an account? Sign Up"
+    ):
 
         new_id = st.text_input(
             "Student ID",
@@ -399,23 +421,28 @@ else:
 
         st.divider()
 
-        # Dashboard button
+
+        # Dashboard
         if st.button(
             "Dashboard",
             use_container_width=True
         ):
 
             st.session_state.page = "dashboard"
+
             st.rerun()
 
-        # AI button
+
+        # AI Assistant
         if st.button(
             "AI Assistant",
             use_container_width=True
         ):
 
             st.session_state.page = "ai"
+
             st.rerun()
+
 
         # New study session
         if st.session_state.page == "ai":
@@ -436,7 +463,9 @@ else:
 
                 st.rerun()
 
+
         st.divider()
+
 
         # Logout
         if st.button(
@@ -445,6 +474,7 @@ else:
         ):
 
             st.session_state.clear()
+
             st.rerun()
 
 
@@ -464,8 +494,13 @@ else:
         # Check permissions
         can_manage_assignments = (
             st.session_state.role
-            in ["helper", "leader", "teacher"]
+            in [
+                "helper",
+                "leader",
+                "teacher"
+            ]
         )
+
 
         # Add assignment
         if can_manage_assignments:
@@ -476,12 +511,18 @@ else:
             ):
 
                 st.session_state.page = "create_assignment"
+
                 st.rerun()
 
-        st.markdown("### Your Assignments")
+
+        st.markdown(
+            "### Your Assignments"
+        )
+
 
         # Get assignments
         assignments = db.get_assignments()
+
 
         # No assignments
         if not assignments:
@@ -489,6 +530,7 @@ else:
             st.info(
                 "There are currently no assignments."
             )
+
 
         # Display assignments
         else:
@@ -502,9 +544,14 @@ else:
                 due_date = assignment[4]
                 created_by = assignment[5]
 
-                with st.container(border=True):
 
-                    st.subheader(title)
+                with st.container(
+                    border=True
+                ):
+
+                    st.subheader(
+                        title
+                    )
 
                     st.write(
                         f"**Subject:** {subject}"
@@ -516,14 +563,19 @@ else:
 
                     if description:
 
-                        st.write(description)
+                        st.write(
+                            description
+                        )
 
                     st.caption(
                         f"Created by: {created_by}"
                     )
 
+
                     col1, col2 = st.columns(2)
 
+
+                    # View assignment
                     with col1:
 
                         if st.button(
@@ -533,10 +585,13 @@ else:
                         ):
 
                             st.session_state.selected_assignment = assignment_id
+
                             st.session_state.page = "assignment"
 
                             st.rerun()
 
+
+                    # Delete assignment
                     with col2:
 
                         if can_manage_assignments:
@@ -548,13 +603,16 @@ else:
                             ):
 
                                 st.session_state.delete_assignment = assignment_id
+
                                 st.rerun()
 
 
         # Delete confirmation
         if "delete_assignment" in st.session_state:
 
-            assignment_id = st.session_state.delete_assignment
+            assignment_id = (
+                st.session_state.delete_assignment
+            )
 
             st.divider()
 
@@ -562,7 +620,9 @@ else:
                 "Are you sure you want to delete this assignment?"
             )
 
+
             col1, col2 = st.columns(2)
+
 
             with col1:
 
@@ -582,6 +642,7 @@ else:
                     )
 
                     st.rerun()
+
 
             with col2:
 
@@ -614,11 +675,16 @@ else:
             ):
 
                 st.session_state.page = "dashboard"
+
                 st.rerun()
+
 
         else:
 
-            st.title("Create Assignment")
+            st.title(
+                "Create Assignment"
+            )
+
 
             title = st.text_input(
                 "Assignment Name"
@@ -640,9 +706,12 @@ else:
                 "Submission Time"
             )
 
+
             st.divider()
 
+
             col1, col2 = st.columns(2)
+
 
             with col1:
 
@@ -679,6 +748,7 @@ else:
 
                         st.rerun()
 
+
             with col2:
 
                 if st.button(
@@ -687,17 +757,22 @@ else:
                 ):
 
                     st.session_state.page = "dashboard"
+
                     st.rerun()
 
 
     # Assignment details
     elif st.session_state.page == "assignment":
 
-        assignment_id = st.session_state.selected_assignment
+        assignment_id = (
+            st.session_state.selected_assignment
+        )
+
 
         assignment = db.get_assignment(
             assignment_id
         )
+
 
         if assignment:
 
@@ -708,7 +783,10 @@ else:
             due_date = assignment[4]
             created_by = assignment[5]
 
-            st.title(title)
+
+            st.title(
+                title
+            )
 
             st.write(
                 f"### {subject}"
@@ -722,13 +800,20 @@ else:
                 f"**Created by:** {created_by}"
             )
 
+
             st.divider()
 
-            st.subheader("Description")
+
+            st.subheader(
+                "Description"
+            )
+
 
             if description:
 
-                st.write(description)
+                st.write(
+                    description
+                )
 
             else:
 
@@ -736,7 +821,9 @@ else:
                     "No description provided."
                 )
 
+
             st.divider()
+
 
             # Delete assignment
             if st.session_state.role in [
@@ -750,7 +837,9 @@ else:
                 ):
 
                     st.session_state.delete_from_details = assignment_id
+
                     st.rerun()
+
 
             # Delete confirmation
             if "delete_from_details" in st.session_state:
@@ -759,7 +848,9 @@ else:
                     "Are you sure you want to delete this assignment?"
                 )
 
+
                 col1, col2 = st.columns(2)
+
 
                 with col1:
 
@@ -775,9 +866,11 @@ else:
                         del st.session_state.delete_from_details
 
                         st.session_state.page = "dashboard"
+
                         st.session_state.selected_assignment = None
 
                         st.rerun()
+
 
                 with col2:
 
@@ -790,12 +883,16 @@ else:
 
                         st.rerun()
 
+
+            # Back
             if st.button(
                 "Back to Dashboard"
             ):
 
                 st.session_state.page = "dashboard"
+
                 st.rerun()
+
 
         else:
 
@@ -803,9 +900,11 @@ else:
                 "Assignment not found."
             )
 
+
             if st.button(
                 "Back to Dashboard"
             ):
 
                 st.session_state.page = "dashboard"
+
                 st.rerun()
