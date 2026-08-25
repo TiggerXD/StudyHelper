@@ -2,6 +2,7 @@ import html
 import streamlit as st
 import database.database as db
 
+
 # Page configuration
 st.set_page_config(
     page_title="Study Helper",
@@ -12,7 +13,7 @@ st.set_page_config(
 # AI page
 def ai_page():
 
-    # Load AI model only when AI page is opened
+    # Import AI only when the AI page is actually opened
     from ai.model import generate_response
 
     # Initialize chat history
@@ -30,13 +31,11 @@ def ai_page():
         """
         <style>
 
-        /* Main background */
         .stApp {
             background-color: #343541;
             color: #ececf1;
         }
 
-        /* Hide Streamlit default UI */
         #MainMenu {
             visibility: hidden;
         }
@@ -49,12 +48,10 @@ def ai_page():
             visibility: hidden;
         }
 
-        /* Sidebar */
         section[data-testid="stSidebar"] {
             background-color: #202123;
         }
 
-        /* Header */
         .study-header {
             text-align: center;
             padding: 15px;
@@ -64,7 +61,6 @@ def ai_page():
             border-bottom: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* Message */
         .message {
             display: flex;
             justify-content: center;
@@ -82,7 +78,6 @@ def ai_page():
             gap: 20px;
         }
 
-        /* Avatar */
         .avatar {
             width: 30px;
             height: 30px;
@@ -107,7 +102,6 @@ def ai_page():
             background-color: #10a37f;
         }
 
-        /* Message text */
         .message-content {
             flex: 1;
             line-height: 1.6;
@@ -117,7 +111,6 @@ def ai_page():
             overflow-wrap: anywhere;
         }
 
-        /* Input */
         div[data-testid="stChatInput"] {
             background-color: #40414F;
             border-radius: 12px;
@@ -128,7 +121,6 @@ def ai_page():
             color: white;
         }
 
-        /* Spinner */
         div[data-testid="stSpinner"] {
             color: #ececf1;
         }
@@ -231,16 +223,11 @@ If the student asks a simple question, give a simple answer.
 If the student asks for a detailed explanation, provide a detailed explanation.
 """
 
-        # Build Gemma conversation
+        # Build conversation
         gemma_messages = [
             {
                 "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": system_prompt
-                    }
-                ]
+                "content": system_prompt
             }
         ]
 
@@ -250,16 +237,11 @@ If the student asks for a detailed explanation, provide a detailed explanation.
             gemma_messages.append(
                 {
                     "role": message["role"],
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": message["content"]
-                        }
-                    ]
+                    "content": message["content"]
                 }
             )
 
-        # Generate AI response
+        # Generate response
         with st.spinner(
             "Study Helper is thinking..."
         ):
@@ -278,7 +260,7 @@ If the student asks for a detailed explanation, provide a detailed explanation.
 
                 return
 
-        # Save AI response
+        # Save response
         st.session_state.messages.append(
             {
                 "role": "assistant",
@@ -376,7 +358,7 @@ if not st.session_state.logged_in:
             use_container_width=True
         ):
 
-            if new_id == "" or new_name == "":
+            if new_id.strip() == "" or new_name.strip() == "":
 
                 st.warning(
                     "Please fill in all fields."
@@ -391,8 +373,8 @@ if not st.session_state.logged_in:
             else:
 
                 db.add_user(
-                    student_id=new_id,
-                    name=new_name,
+                    student_id=new_id.strip(),
+                    name=new_name.strip(),
                     role=role.lower()
                 )
 
@@ -404,10 +386,12 @@ if not st.session_state.logged_in:
 # Main application
 else:
 
-    # Main sidebar
+    # Sidebar
     with st.sidebar:
 
-        st.title("Study Helper")
+        st.title(
+            "Study Helper"
+        )
 
         st.divider()
 
@@ -422,7 +406,7 @@ else:
         st.divider()
 
 
-        # Dashboard
+        # Dashboard button
         if st.button(
             "Dashboard",
             use_container_width=True
@@ -433,7 +417,7 @@ else:
             st.rerun()
 
 
-        # AI Assistant
+        # AI Assistant button
         if st.button(
             "AI Assistant",
             use_container_width=True
@@ -491,7 +475,7 @@ else:
             f"Good to see you, {st.session_state.name}!"
         )
 
-        # Check permissions
+        # Permissions
         can_manage_assignments = (
             st.session_state.role
             in [
@@ -575,7 +559,7 @@ else:
                     col1, col2 = st.columns(2)
 
 
-                    # View assignment
+                    # View details
                     with col1:
 
                         if st.button(
@@ -591,7 +575,7 @@ else:
                             st.rerun()
 
 
-                    # Delete assignment
+                    # Delete
                     with col2:
 
                         if can_manage_assignments:
@@ -720,7 +704,7 @@ else:
                     use_container_width=True
                 ):
 
-                    if title == "" or subject == "":
+                    if title.strip() == "" or subject.strip() == "":
 
                         st.warning(
                             "Please enter an assignment name and subject."
@@ -733,8 +717,8 @@ else:
                         )
 
                         db.create_assignment(
-                            title=title,
-                            subject=subject,
+                            title=title.strip(),
+                            subject=subject.strip(),
                             description=description,
                             due_date=due_datetime,
                             created_by=st.session_state.student_id
