@@ -12,10 +12,6 @@ st.set_page_config(
 
 # AI page
 def ai_page():
-
-    # Import AI only when the AI page is actually opened
-    from ai.model import generate_response
-
     # Initialize chat history
     if "messages" not in st.session_state:
 
