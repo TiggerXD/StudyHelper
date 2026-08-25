@@ -12,6 +12,10 @@ st.set_page_config(
 
 # AI page
 def ai_page():
+
+    # Import AI only when the AI page is actually opened
+    generate_response = None
+
     # Initialize chat history
     if "messages" not in st.session_state:
 
@@ -239,21 +243,8 @@ If the student asks for a detailed explanation, provide a detailed explanation.
 
         # Generate response
         with st.spinner(
-            "Study Helper is thinking..."
+            response = "AI model is temporarily disabled for debugging."
         ):
-
-            try:
-
-                response = generate_response(
-                    gemma_messages
-                )
-
-            except Exception as e:
-
-                st.error(
-                    f"AI error: {e}"
-                )
-
                 return
 
         # Save response
