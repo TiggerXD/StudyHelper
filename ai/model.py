@@ -1,3 +1,4 @@
+import streamlit as st
 import torch
 from transformers import AutoProcessor, Gemma3ForConditionalGeneration
 
@@ -8,21 +9,35 @@ _processor = None
 
 
 def load_model():
+
     global _model, _processor
 
-    if _model is None:
-        _processor = AutoProcessor.from_pretrained(MODEL_ID)
+    if _model is not None:
+        return _model, _processor
 
-        _model = Gemma3ForConditionalGeneration.from_pretrained(
-            MODEL_ID,
-            torch_dtype=torch.bfloat16,
-            device_map="auto"
-        ).eval()
+    hf_token = st.secrets["HF_TOKEN"]
+
+    print("Loading Gemma 3 4B IT...")
+
+    _processor = AutoProcessor.from_pretrained(
+        MODEL_ID,
+        token=hf_token
+    )
+
+    _model = Gemma3ForConditionalGeneration.from_pretrained(
+        MODEL_ID,
+        token=hf_token,
+        torch_dtype=torch.bfloat16,
+        device_map="auto"
+    ).eval()
+
+    print("Gemma 3 4B IT loaded!")
 
     return _model, _processor
 
 
 def generate_response(messages, max_new_tokens=400):
+
     model, processor = load_model()
 
     inputs = processor.apply_chat_template(
@@ -41,6 +56,7 @@ def generate_response(messages, max_new_tokens=400):
     input_length = inputs["input_ids"].shape[-1]
 
     with torch.inference_mode():
+
         output = model.generate(
             **inputs,
             max_new_tokens=max_new_tokens,
