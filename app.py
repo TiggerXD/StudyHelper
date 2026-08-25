@@ -10,6 +10,21 @@ st.set_page_config(
 )
 
 
+# Initialize database
+db.initialize_database()
+
+
+# Session state
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if "page" not in st.session_state:
+    st.session_state.page = "dashboard"
+
+if "selected_assignment" not in st.session_state:
+    st.session_state.selected_assignment = None
+
+
 # AI page
 def ai_page():
 
@@ -19,7 +34,10 @@ def ai_page():
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": "Hello! I'm your Study Helper. What subject or topic are we working on today?"
+                "content": (
+                    "Hello! I'm your Study Helper. "
+                    "What subject or topic are we working on today?"
+                )
             }
         ]
 
@@ -118,10 +136,6 @@ def ai_page():
             color: white;
         }
 
-        div[data-testid="stSpinner"] {
-            color: #ececf1;
-        }
-
         </style>
         """,
         unsafe_allow_html=True
@@ -133,11 +147,11 @@ def ai_page():
         unsafe_allow_html=True
     )
 
-    # Display chat messages
+    # Display messages
     for message in st.session_state.messages:
 
         safe_content = html.escape(
-            message["content"]
+            str(message["content"])
         )
 
         if message["role"] == "assistant":
@@ -189,7 +203,7 @@ def ai_page():
 
     if prompt:
 
-        # Add user message
+        # Save user message
         st.session_state.messages.append(
             {
                 "role": "user",
@@ -197,18 +211,18 @@ def ai_page():
             }
         )
 
-        # Temporary response
-        # AI model is disabled while debugging the Streamlit app
-        with st.spinner(
-            "Study Helper is thinking..."
-        ):
+        # Temporary response while AI is disconnected
+        response = (
+            "The Gemma AI model is currently being connected "
+            "to Study Helper.\n\n"
+            "Your message was received successfully."
+        )
 
-            response = (
-                "The AI model is temporarily disabled while we finish "
-                "setting up Gemma 3 4B IT."
-            )
+        with st.spinner("Study Helper is thinking..."):
 
-        # Save AI response
+            pass
+
+        # Save response
         st.session_state.messages.append(
             {
                 "role": "assistant",
@@ -217,26 +231,6 @@ def ai_page():
         )
 
         st.rerun()
-
-
-# Initialize database
-db.initialize_database()
-
-
-# Session state
-if "logged_in" not in st.session_state:
-
-    st.session_state.logged_in = False
-
-
-if "page" not in st.session_state:
-
-    st.session_state.page = "dashboard"
-
-
-if "selected_assignment" not in st.session_state:
-
-    st.session_state.selected_assignment = None
 
 
 # Login page
@@ -256,17 +250,14 @@ if not st.session_state.logged_in:
     ):
 
         user = db.login(
-            student_id
+            student_id.strip()
         )
 
         if user:
 
             st.session_state.logged_in = True
-
             st.session_state.student_id = user[0]
-
             st.session_state.name = user[1]
-
             st.session_state.role = user[2]
 
             st.rerun()
@@ -309,18 +300,16 @@ if not st.session_state.logged_in:
             use_container_width=True
         ):
 
-            if (
-                new_id.strip() == ""
-                or new_name.strip() == ""
-            ):
+            clean_id = new_id.strip()
+            clean_name = new_name.strip()
+
+            if clean_id == "" or clean_name == "":
 
                 st.warning(
                     "Please fill in all fields."
                 )
 
-            elif db.login(
-                new_id.strip()
-            ):
+            elif db.login(clean_id):
 
                 st.error(
                     "Student ID already exists."
@@ -329,8 +318,8 @@ if not st.session_state.logged_in:
             else:
 
                 db.add_user(
-                    student_id=new_id.strip(),
-                    name=new_name.strip(),
+                    student_id=clean_id,
+                    name=clean_name,
                     role=role.lower()
                 )
 
@@ -361,7 +350,6 @@ else:
 
         st.divider()
 
-
         # Dashboard
         if st.button(
             "Dashboard",
@@ -390,14 +378,17 @@ else:
             st.divider()
 
             if st.button(
-                "＋  New study session",
+                "＋ New study session",
                 use_container_width=True
             ):
 
                 st.session_state.messages = [
                     {
                         "role": "assistant",
-                        "content": "Hello! I'm your Study Helper. What subject or topic are we working on today?"
+                        "content": (
+                            "Hello! I'm your Study Helper. "
+                            "What subject or topic are we working on today?"
+                        )
                     }
                 ]
 
@@ -478,15 +469,10 @@ else:
             for assignment in assignments:
 
                 assignment_id = assignment[0]
-
                 title = assignment[1]
-
                 subject = assignment[2]
-
                 description = assignment[3]
-
                 due_date = assignment[4]
-
                 created_by = assignment[5]
 
 
@@ -605,10 +591,9 @@ else:
                     st.rerun()
 
 
-    # Create assignment page
+    # Create assignment
     elif st.session_state.page == "create_assignment":
 
-        # Security check
         if st.session_state.role not in [
             "helper",
             "leader",
@@ -729,15 +714,10 @@ else:
         if assignment:
 
             assignment_id = assignment[0]
-
             title = assignment[1]
-
             subject = assignment[2]
-
             description = assignment[3]
-
             due_date = assignment[4]
-
             created_by = assignment[5]
 
 
