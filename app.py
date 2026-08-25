@@ -13,9 +13,6 @@ st.set_page_config(
 # AI page
 def ai_page():
 
-    # Import AI only when the AI page is actually opened
-    generate_response = None
-
     # Initialize chat history
     if "messages" not in st.session_state:
 
@@ -200,54 +197,18 @@ def ai_page():
             }
         )
 
-        # System prompt
-        system_prompt = """
-You are Study Helper, an AI study assistant.
+        # Temporary response
+        # AI model is disabled while debugging the Streamlit app
+        with st.spinner(
+            "Study Helper is thinking..."
+        ):
 
-Your job is to help students understand their school subjects.
-
-Explain concepts clearly and step-by-step.
-
-When a student is struggling, break the problem into smaller parts.
-
-Use examples when they are useful.
-
-Do not unnecessarily give the answer to a homework question without explaining how to solve it.
-
-Adapt your explanation to the student's level.
-
-Be friendly, helpful, and concise.
-
-If the student asks a simple question, give a simple answer.
-
-If the student asks for a detailed explanation, provide a detailed explanation.
-"""
-
-        # Build conversation
-        gemma_messages = [
-            {
-                "role": "system",
-                "content": system_prompt
-            }
-        ]
-
-        # Add conversation history
-        for message in st.session_state.messages:
-
-            gemma_messages.append(
-                {
-                    "role": message["role"],
-                    "content": message["content"]
-                }
+            response = (
+                "The AI model is temporarily disabled while we finish "
+                "setting up Gemma 3 4B IT."
             )
 
-        # Generate response
-        with st.spinner(
-            response = "AI model is temporarily disabled for debugging."
-        ):
-                return
-
-        # Save response
+        # Save AI response
         st.session_state.messages.append(
             {
                 "role": "assistant",
@@ -301,8 +262,11 @@ if not st.session_state.logged_in:
         if user:
 
             st.session_state.logged_in = True
+
             st.session_state.student_id = user[0]
+
             st.session_state.name = user[1]
+
             st.session_state.role = user[2]
 
             st.rerun()
@@ -345,13 +309,18 @@ if not st.session_state.logged_in:
             use_container_width=True
         ):
 
-            if new_id.strip() == "" or new_name.strip() == "":
+            if (
+                new_id.strip() == ""
+                or new_name.strip() == ""
+            ):
 
                 st.warning(
                     "Please fill in all fields."
                 )
 
-            elif db.login(new_id):
+            elif db.login(
+                new_id.strip()
+            ):
 
                 st.error(
                     "Student ID already exists."
@@ -393,7 +362,7 @@ else:
         st.divider()
 
 
-        # Dashboard button
+        # Dashboard
         if st.button(
             "Dashboard",
             use_container_width=True
@@ -404,7 +373,7 @@ else:
             st.rerun()
 
 
-        # AI Assistant button
+        # AI Assistant
         if st.button(
             "AI Assistant",
             use_container_width=True
@@ -509,10 +478,15 @@ else:
             for assignment in assignments:
 
                 assignment_id = assignment[0]
+
                 title = assignment[1]
+
                 subject = assignment[2]
+
                 description = assignment[3]
+
                 due_date = assignment[4]
+
                 created_by = assignment[5]
 
 
@@ -555,7 +529,9 @@ else:
                             use_container_width=True
                         ):
 
-                            st.session_state.selected_assignment = assignment_id
+                            st.session_state.selected_assignment = (
+                                assignment_id
+                            )
 
                             st.session_state.page = "assignment"
 
@@ -573,7 +549,9 @@ else:
                                 use_container_width=True
                             ):
 
-                                st.session_state.delete_assignment = assignment_id
+                                st.session_state.delete_assignment = (
+                                    assignment_id
+                                )
 
                                 st.rerun()
 
@@ -691,7 +669,10 @@ else:
                     use_container_width=True
                 ):
 
-                    if title.strip() == "" or subject.strip() == "":
+                    if (
+                        title.strip() == ""
+                        or subject.strip() == ""
+                    ):
 
                         st.warning(
                             "Please enter an assignment name and subject."
@@ -748,10 +729,15 @@ else:
         if assignment:
 
             assignment_id = assignment[0]
+
             title = assignment[1]
+
             subject = assignment[2]
+
             description = assignment[3]
+
             due_date = assignment[4]
+
             created_by = assignment[5]
 
 
@@ -807,7 +793,9 @@ else:
                     "Delete Assignment"
                 ):
 
-                    st.session_state.delete_from_details = assignment_id
+                    st.session_state.delete_from_details = (
+                        assignment_id
+                    )
 
                     st.rerun()
 
