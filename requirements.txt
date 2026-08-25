@@ -4,6 +4,6 @@ torchvision
 transformers
 accelerate
 huggingface_hub
-safetensors
 sentencepiece
-pillow
+safetensors
+protobuf
