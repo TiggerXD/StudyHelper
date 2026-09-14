@@ -1,74 +1,61 @@
-import streamlit as st
 import torch
-from transformers import AutoProcessor, Gemma3ForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
-MODEL_ID = "google/gemma-3-4b-it"
+MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
 
-_model = None
-_processor = None
+tokenizer = None
+model = None
 
 
 def load_model():
 
-    global _model, _processor
+    global tokenizer
+    global model
 
-    if _model is not None:
-        return _model, _processor
+    if tokenizer is not None and model is not None:
+        return
 
-    hf_token = st.secrets["HF_TOKEN"]
+    print("Loading Qwen2.5 0.5B...")
 
-    print("Loading Gemma 3 4B IT...")
-
-    _processor = AutoProcessor.from_pretrained(
-        MODEL_ID,
-        token=hf_token
+    tokenizer = AutoTokenizer.from_pretrained(
+        MODEL_NAME
     )
 
-    _model = Gemma3ForConditionalGeneration.from_pretrained(
-        MODEL_ID,
-        token=hf_token,
-        torch_dtype=torch.bfloat16,
-        device_map="auto"
-    ).eval()
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        torch_dtype=torch.float32
+    )
 
-    print("Gemma 3 4B IT loaded!")
+    model.eval()
 
-    return _model, _processor
+    print("Qwen2.5 0.5B loaded.")
 
 
-def generate_response(messages, max_new_tokens=400):
+def generate_response(messages):
 
-    model, processor = load_model()
+    load_model()
 
-    inputs = processor.apply_chat_template(
+    inputs = tokenizer.apply_chat_template(
         messages,
-        add_generation_prompt=True,
         tokenize=True,
-        return_dict=True,
+        add_generation_prompt=True,
         return_tensors="pt"
     )
 
-    inputs = {
-        key: value.to(model.device)
-        for key, value in inputs.items()
-    }
+    with torch.no_grad():
 
-    input_length = inputs["input_ids"].shape[-1]
-
-    with torch.inference_mode():
-
-        output = model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
+        outputs = model.generate(
+            inputs,
+            max_new_tokens=256,
             do_sample=True,
             temperature=0.7,
             top_p=0.9
         )
 
-    output = output[0][input_length:]
+    generated_tokens = outputs[0][inputs.shape[-1]:]
 
-    response = processor.decode(
-        output,
+    response = tokenizer.decode(
+        generated_tokens,
         skip_special_tokens=True
     )
 
