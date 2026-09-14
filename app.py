@@ -1,10 +1,7 @@
 import html
-import html
 import streamlit as st
 import database.database as db
-import database.database as db
 
-# Page configuration
 st.set_page_config(
     page_title="Study Helper",
     layout="wide"
@@ -428,7 +425,6 @@ if not st.session_state.logged_in:
 
 with st.sidebar:
 
-    st.title("Study Helper")
     st.title("Study Helper")
 
     st.write(
