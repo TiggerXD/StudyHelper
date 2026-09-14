@@ -41,14 +41,16 @@ def generate_response(messages):
     with torch.no_grad():
 
         outputs = model.generate(
-            inputs,
+            **inputs,
             max_new_tokens=256,
             do_sample=True,
             temperature=0.7,
             top_p=0.9
         )
 
-    generated_tokens = outputs[0][inputs.shape[-1]:]
+    input_length = inputs["input_ids"].shape[-1]
+
+    generated_tokens = outputs[0][input_length:]
 
     response = tokenizer.decode(
         generated_tokens,
