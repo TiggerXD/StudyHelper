@@ -1,21 +1,15 @@
 import torch
+import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM
+
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
 
-tokenizer = None
-model = None
 
-
+@st.cache_resource
 def load_model():
 
-    global tokenizer
-    global model
-
-    if tokenizer is not None and model is not None:
-        return
-
-    print("Loading Qwen2.5 0.5B...")
+    print("Loading Qwen2.5-0.5B-Instruct...")
 
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_NAME
@@ -28,12 +22,14 @@ def load_model():
 
     model.eval()
 
-    print("Qwen2.5 0.5B loaded.")
+    print("Qwen2.5-0.5B-Instruct loaded.")
+
+    return tokenizer, model
 
 
 def generate_response(messages):
 
-    load_model()
+    tokenizer, model = load_model()
 
     inputs = tokenizer.apply_chat_template(
         messages,
